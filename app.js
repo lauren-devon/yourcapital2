@@ -11,7 +11,7 @@ connectDB();
 
 // ------------------------------ Data Loading Functions ------------------------------
 
-async function fetchAndStoreEmtiaGoldSilverPrices() {
+async function loadEmtiaGoldSilverDataToDB() {
     try {
         // Define the API endpoints
         const endpoints = [
@@ -84,7 +84,7 @@ async function loadCurrencyDataToDB() {
     }
 }
 
-const fetchAndUpdateCryptoCurrencyData = async () => {
+const loadCryptoCurrencyDataToDB = async () => {
     try {
         const apiUrl = 'https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest?limit=300';
         const apiKey = '7cc1fe82-89b1-4b66-8086-30551da18065';
@@ -152,7 +152,7 @@ async function loadShareDataToDB() {
     }
 }
 
-async function fetchAndStoreEmtiaData() {
+async function loadEmtiaDataToDB() {
     try {
         // API call to get the data (replace with the actual API URL)
         const response = await axios.get('https://api.collectapi.com/economy/emtia', {
@@ -287,11 +287,18 @@ async function getEmtiaData(req, res) {
 
 // ------------------------------ Cron Jobs ------------------------------
 
-cron.schedule('*/2 * * * *', fetchAndUpdateCryptoCurrencyData);
-cron.schedule('*/2 * * * *', loadCurrencyDataToDB);
-cron.schedule('*/2 * * * *', loadShareDataToDB);
-//cron.schedule('*/2 * * * *', fetchAndStoreEmtiaData);
-cron.schedule('*/1 * * * *', fetchAndStoreEmtiaGoldSilverPrices);
+cron.schedule('*/7 * * * *', loadCryptoCurrencyDataToDB);
+cron.schedule('*/45 * * * *', loadCurrencyDataToDB);
+cron.schedule('*/6 * * * *', loadShareDataToDB);
+cron.schedule('*/480 * * * *', loadEmtiaDataToDB);
+cron.schedule('*/1 * * * *', loadEmtiaGoldSilverDataToDB);
+
+// ------------------------------ Cron Jobs Test ------------------------------
+// cron.schedule('*/1 * * * *', loadCryptoCurrencyDataToDB);
+// cron.schedule('*/1 * * * *', loadCurrencyDataToDB);
+// cron.schedule('*/1 * * * *', loadShareDataToDB);
+// cron.schedule('*/1 * * * *', loadEmtiaDataToDB);
+// cron.schedule('*/1 * * * *', loadEmtiaGoldSilverDataToDB);
 
 
 
