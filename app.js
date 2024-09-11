@@ -30,8 +30,8 @@ async function fetchAndStoreEmtiaGoldSilverPrices() {
                     Category: 'emtia',
                     Name: name,
                     Description: data.name,
-                    BuyPrice: data.price, 
-                    SellPrice: data.price,
+                    BuyPrice: formatToFourDecimals(data.price), 
+                    SellPrice: formatToFourDecimals(data.price),
                     Spread: 0 
                 };
 
@@ -70,9 +70,9 @@ async function loadCurrencyDataToDB() {
                     Category: 'parabirimi', 
                     Name: name,
                     Description: `Exchange rate for ${base} to ${currencyCode}`,
-                    BuyPrice: buyPrice,
-                    SellPrice:sellPrice,
-                   Spread: spread
+                    BuyPrice: formatToFourDecimals(buyPrice),
+                    SellPrice:formatToFourDecimals(sellPrice),
+                   Spread: formatToFourDecimals(spread)
                 },
                 { upsert: true, new: true } 
             );
@@ -107,9 +107,9 @@ const fetchAndUpdateCryptoCurrencyData = async () => {
                     Category: 'kripto',
                     Name: newName,
                     Description: `${name} to US Dollar`,
-                    BuyPrice: buyPrice,
-                    SellPrice: sellPrice,
-                    Spread: spread
+                    BuyPrice: formatToFourDecimals(buyPrice),
+                    SellPrice: formatToFourDecimals(sellPrice),
+                    Spread: formatToFourDecimals(spread)
                 },
                 { upsert: true, new: true }
             );
@@ -138,9 +138,9 @@ async function loadShareDataToDB() {
                     Category: 'hissesenedi', 
                     Name: symbol,
                     Description: `${name} (${symbol})`,
-                    BuyPrice: buyPrice,
-                    SellPrice: sellPrice,
-                    Spread: spread
+                    BuyPrice: formatToFourDecimals(buyPrice),
+                    SellPrice: formatToFourDecimals(sellPrice),
+                    Spread: formatToFourDecimals(spread)
                 },
                 { upsert: true, new: true }
             );
@@ -179,9 +179,9 @@ async function fetchAndStoreEmtiaData() {
                     {
                         Category: 'emtia',
                         Description: text,
-                        BuyPrice: buying,
-                        SellPrice: selling,
-                        Spread: spread
+                        BuyPrice: formatToFourDecimals(buying),
+                        SellPrice: formatToFourDecimals(selling),
+                        Spread: formatToFourDecimals(spread)
                     }
                 );
             } else {
@@ -190,9 +190,9 @@ async function fetchAndStoreEmtiaData() {
                     Category: 'emtia',
                     Name: name,
                     Description: text,
-                    BuyPrice: buying,
-                    SellPrice: selling,
-                    Spread: spread
+                    BuyPrice: formatToFourDecimals(buying),
+                    SellPrice: formatToFourDecimals(selling),
+                    Spread: formatToFourDecimals(spread)
                 });
                 await newItem.save();
             }
@@ -348,6 +348,12 @@ function verifyKey(req, res, next) {
     }
 }
 
+function formatToFourDecimals(price) {
+    if (typeof price === 'number' && !isNaN(price)) {
+        return parseFloat(price.toFixed(4));
+    }
+    return 0; // or handle the invalid value in another way, such as returning `null`
+}
 
 const port = 5000;
 
