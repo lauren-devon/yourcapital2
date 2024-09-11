@@ -215,9 +215,9 @@ async function retrieveSharesData(req, res) {
             filter = { category };
         }
 
-        const data = await Currency.find({Category: 'share'});
+        const data = await Currency.find({Category: 'hissesenedi'});
 	var jsonResponse = JSON.stringify(data);
-        res.send(jsonResponse);
+        res.status(200).send(jsonResponse);
     } catch (error) {
         console.error('Error retrieving data:', error);
         res.status(500).send('Error retrieving data');
@@ -226,10 +226,10 @@ async function retrieveSharesData(req, res) {
 
 async function getCurrencyData(req, res) {
     try {
-        const currencies = await Currency.find({ Category: 'currency' });
+        const currencies = await Currency.find({ Category: 'parabirimi' });
   var jsonResponse = JSON.stringify(currencies);
 
-        res.send(jsonResponse);
+        res.status(200).send(jsonResponse);
 
     } catch (error) {
         console.error('Error retrieving currency data:', error);
@@ -242,10 +242,9 @@ async function getCurrencyData(req, res) {
 
 async function getCryptoCurrencyData(req, res) {
     try {
-        const currencies = await Currency.find({Category: 'cryptocurrency'});
+        const currencies = await Currency.find({Category: 'kripto'});
          var jsonResponse = JSON.stringify(currencies);
-v
-        res.send(jsonResponse);
+        res.status(200).send(jsonResponse);
 
     } catch (error) {
 	console.error('Error happend here: ', error);
@@ -276,7 +275,7 @@ async function getEmtiaData(req, res) {
 
  var jsonResponse = JSON.stringify(emtiaData);
 
-        res.send(jsonResponse);
+        res.status(200).send(jsonResponse);
   
      
     } catch (error) {
@@ -291,7 +290,7 @@ async function getEmtiaData(req, res) {
 cron.schedule('*/2 * * * *', fetchAndUpdateCryptoCurrencyData);
 cron.schedule('*/2 * * * *', loadCurrencyDataToDB);
 cron.schedule('*/2 * * * *', loadShareDataToDB);
-cron.schedule('*/2 * * * *', fetchAndStoreEmtiaData);
+//cron.schedule('*/2 * * * *', fetchAndStoreEmtiaData);
 cron.schedule('*/1 * * * *', fetchAndStoreEmtiaGoldSilverPrices);
 
 
