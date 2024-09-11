@@ -59,20 +59,20 @@ async function loadCurrencyDataToDB() {
         const { base, rates } = currencyData;
 
         for (let [currencyCode, rate] of Object.entries(rates)) {
-            const name = `${base}/${currencyCode}`;  
+            const name =`${base}/${currencyCode}`;  
             const buyPrice = rate;
             const sellPrice = buyPrice * 1.01;
             const spread = sellPrice - buyPrice;
 
             await Currency.findOneAndUpdate(
-                { name },  
+                {Name: name, Category: 'parabirimi', },  
                 {
-                    Category: 'currency', 
-                    name,
+                    Category: 'parabirimi', 
+                    Name: name,
                     Description: `Exchange rate for ${base} to ${currencyCode}`,
-                    buyPrice,
-                    sellPrice,
-                    spread
+                    BuyPrice: buyPrice,
+                    SellPrice:sellPrice,
+                   Spread: spread
                 },
                 { upsert: true, new: true } 
             );
@@ -100,16 +100,16 @@ const fetchAndUpdateCryptoCurrencyData = async () => {
             const buyPrice = quote.USD.price;
             const sellPrice = buyPrice * 1.01;
             const spread = sellPrice - buyPrice;
-
+	const newName = `${symbol}/USD`;
             await Currency.findOneAndUpdate(
-                { name }, 
+                { Name: newName, Category: 'kripto' }, 
                 {
-                    Category: 'cryptocurrency',
-                    name,
-                    Description: `${name} (${symbol})`,
-                    buyPrice,
-                    sellPrice,
-                    spread
+                    Category: 'kripto',
+                    Name: newName,
+                    Description: `${name} to US Dollar`,
+                    BuyPrice: buyPrice,
+                    SellPrice: sellPrice,
+                    Spread: spread
                 },
                 { upsert: true, new: true }
             );
@@ -133,14 +133,14 @@ async function loadShareDataToDB() {
 
           
             await Currency.findOneAndUpdate(
-                { name },  
+                { Name: symbol, Category: 'hissesenedi' },  
                 {
-                    Category: 'share', 
-                    name,
+                    Category: 'hissesenedi', 
+                    Name: symbol,
                     Description: `${name} (${symbol})`,
-                    buyPrice,
-                    sellPrice,
-                    spread
+                    BuyPrice: buyPrice,
+                    SellPrice: sellPrice,
+                    Spread: spread
                 },
                 { upsert: true, new: true }
             );
@@ -170,12 +170,12 @@ async function fetchAndStoreEmtiaData() {
             const spread = selling - buying;
 
             // Find if the document already exists by name
-            const existingItem = await Currency.findOne({ name });
+            const existingItem = await Currency.findOne({ Name:name });
 
             if (existingItem) {
                 // Update if it already exists
                 await Currency.updateOne(
-                    { name },
+                    { Name: name,  Category: 'emtia' },
                     {
                         Category: 'emtia',
                         Description: text,
@@ -216,7 +216,8 @@ async function retrieveSharesData(req, res) {
         }
 
         const data = await Currency.find({Category: 'share'});
-        res.status(200).json(data);
+	var jsonResponse = JSON.stringify(data);
+        res.send(jsonResponse);
     } catch (error) {
         console.error('Error retrieving data:', error);
         res.status(500).send('Error retrieving data');
@@ -226,10 +227,10 @@ async function retrieveSharesData(req, res) {
 async function getCurrencyData(req, res) {
     try {
         const currencies = await Currency.find({ Category: 'currency' });
-        res.status(200).json({
-            success: true,
-            data: currencies,
-        });
+  var jsonResponse = JSON.stringify(currencies);
+
+        res.send(jsonResponse);
+
     } catch (error) {
         console.error('Error retrieving currency data:', error);
         res.status(500).json({
@@ -242,8 +243,12 @@ async function getCurrencyData(req, res) {
 async function getCryptoCurrencyData(req, res) {
     try {
         const currencies = await Currency.find({Category: 'cryptocurrency'});
-        res.status(200).json(currencies);
+         var jsonResponse = JSON.stringify(currencies);
+v
+        res.send(jsonResponse);
+
     } catch (error) {
+	console.error('Error happend here: ', error);
         res.status(500).send('Error fetching crypto data');
     }
 }
@@ -269,8 +274,11 @@ async function getEmtiaData(req, res) {
         { $project: { sortOrder: 0 } } // Remove the sortOrder field from the final result
       ]);
 
+ var jsonResponse = JSON.stringify(emtiaData);
+
+        res.send(jsonResponse);
   
-      res.status(200).json(emtiaData);
+     
     } catch (error) {
       console.error('Error fetching emtia data:', error);
       res.status(500).json({ error: 'Error fetching emtia data' });
@@ -280,10 +288,10 @@ async function getEmtiaData(req, res) {
 
 // ------------------------------ Cron Jobs ------------------------------
 
-cron.schedule('*/7 * * * *', fetchAndUpdateCryptoCurrencyData);
-cron.schedule('*/45 * * * *', loadCurrencyDataToDB);
-cron.schedule('*/6 * * * *', loadShareDataToDB);
-cron.schedule('*/480 * * * *', fetchAndStoreEmtiaData);
+cron.schedule('*/2 * * * *', fetchAndUpdateCryptoCurrencyData);
+cron.schedule('*/2 * * * *', loadCurrencyDataToDB);
+cron.schedule('*/2 * * * *', loadShareDataToDB);
+cron.schedule('*/2 * * * *', fetchAndStoreEmtiaData);
 cron.schedule('*/1 * * * *', fetchAndStoreEmtiaGoldSilverPrices);
 
 
@@ -317,6 +325,30 @@ app.get('/hissesenedi', retrieveSharesData);
 app.get('/kripto', getCryptoCurrencyData);
 
 app.get('/emtia', getEmtiaData);
+
+app.delete('/clear-data', verifyKey, clearData);
+
+async function clearData(req, res) {
+    try {
+        await Currency.deleteMany({}); // Deletes all documents in the Currency collection
+        res.status(200).json({ message: 'All data cleared successfully' });
+    } catch (error) {
+        res.status(500).json({ error: 'Error clearing data' });
+    }
+}
+
+
+function verifyKey(req, res, next) {
+    const apiKey = req.headers['x-api-key']; // The key in the request header
+
+    // Check if the API key is provided and valid
+    if (apiKey === 'kal;jsdflkja;lsdjf;lkjasdlfkjjhaslkdjf') {
+        next(); // Proceed to the next middleware or route handler
+    } else {
+        res.status(403).json({ error: 'Forbidden: Invalid API Key' });
+    }
+}
+
 
 const port = 5000;
 
