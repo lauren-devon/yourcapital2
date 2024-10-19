@@ -53,26 +53,36 @@ async function loadEmtiaGoldSilverDataToDB() {
 
 async function loadCurrencyDataToDB() {
     try {
-        const response = await axios.get('https://openexchangerates.org/api/latest.json?app_id=80921a85ca6d44079d824345527ed736');
+        // Get current date
+        const today = new Date();
+        const dayOfMonth = today.getDate();
+
+        // Choose API key based on day of month
+        const apiKey = dayOfMonth <= 15 
+            ? '80921a85ca6d44079d824345527ed736'  // First key for days 1-15
+            : '21187c73720c466ebe509ef62cd90e08'; // Second key for days 16-end
+
+        // Make API request with selected key
+        const response = await axios.get(`https://openexchangerates.org/api/latest.json?app_id=${apiKey}`);
         const currencyData = response.data;
 
         const { base, rates } = currencyData;
 
         for (let [currencyCode, rate] of Object.entries(rates)) {
-            const name =`${base}/${currencyCode}`;  
+            const name = `${base}/${currencyCode}`;  
             const buyPrice = rate;
             const sellPrice = buyPrice * 1.01;
             const spread = sellPrice - buyPrice;
 
             await Currency.findOneAndUpdate(
-                {Name: name, Category: 'parabirimi', },  
+                { Name: name, Category: 'parabirimi' },  
                 {
                     Category: 'parabirimi', 
                     Name: name,
                     Description: `Exchange rate for ${base} to ${currencyCode}`,
                     BuyPrice: formatToFourDecimals(buyPrice),
-                    SellPrice:formatToFourDecimals(sellPrice),
-                   Spread: formatToFourDecimals(spread)
+                    SellPrice: formatToFourDecimals(sellPrice),
+                    Spread: formatToFourDecimals(spread)
                 },
                 { upsert: true, new: true } 
             );
@@ -81,6 +91,8 @@ async function loadCurrencyDataToDB() {
         console.log('Currency data updated successfully');
     } catch (error) {
         console.error('Error updating currency data:', error);
+        // You might want to add more specific error handling here
+        throw error; // Re-throw the error to be handled by the caller
     }
 }
 
